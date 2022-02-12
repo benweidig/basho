@@ -18,7 +18,13 @@ But for a first version it does what it's supposed to do and might be a starting
 
 ## How?
 
-`./basho.sh <library location> <metadata>`
+```
+./basho.sh \
+    -l <library location> \
+    -c <metadata column> \
+    -f <formats csv> \ # optional (default=all)
+    -o <output dir> \ # optional (default=$PWD)
+```
 
 ## What's next?
 
@@ -26,7 +32,6 @@ There's a lot to be desired:
 
 * Check if an export already exists.
   The filenames already contain the `id` so this shouldn't be too hard.
-* Fileformat restriction. Right now all formats are exported.
 * Better logging/output.
 * Better error handling.
 
