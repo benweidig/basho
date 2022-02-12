@@ -12,7 +12,7 @@
 #   <metadata column>   Name of custom metadata column
 #
 # Requirements:
-#   calibredv, jq, xmllint, bash4+
+#   calibredb, jq, xmllint, bash4+
 ################################################################################
 
 VERSION="0.0.1"
