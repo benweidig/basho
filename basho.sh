@@ -66,45 +66,27 @@ while getopts "l:c:f:o:" arg; do
     esac
 done
 
-# 3. LOAD ALL BOOK IDS
 
-BOOK_IDS=$(calibredb --with-library="$LIBRARY" list --for-machine | jq --compact-output --raw-output '.[].id')
+# 3. LOAD ALL RELEVANT BOOKS
 
-if [[ -z "$BOOK_IDS" ]]; then
-    >&2 echo "No books returned from calibredb"
+BOOKS=$(calibredb --with-library="$LIBRARY" list --for-machine --fields="*${CUSTOM_METADATA_COL},title" | jq --compact-output --raw-output ".[] | select(.[\"*${CUSTOM_METADATA_COL}\"] | length > 0)")
+
+if [[ -z "$BOOKS" ]]; then
+    >&2 echo "No books found for column '${CUSTOM_METADATA_COL}' from calibredb"
     exit 1
 fi
 
-# 4. CHECK EFVERY BOOK FOR RELEVANT METADATA
+# 4. EXPORT BOOKS
 
-while IFS= read -d $'\n' -r BOOK_ID ; do
+while IFS= read -d $'\n' -r BOOK ; do
 
-    # 5. GET OPF METADATA
-    BOOK_OPF=$(calibredb --with-library="$LIBRARY" show_metadata --as-opf "$BOOK_ID")
+    # 4a. EXTRACT BOOK INFOS
+    BOOK_ID=$(jq --compact-output --raw-output ".id" <<< "$BOOK")
+    BOOK_TITLE=$(jq --compact-output --raw-output ".title" <<< "$BOOK")
 
-    # 6. EXTRACT RELEVANT METADATA
-    OPF_CUSTOM_METADATA=$(xmllint --xpath "string(//*[local-name()='package']/*[local-name()='metadata']/*[local-name()='meta'][@name='calibre:user_metadata:#${CUSTOM_METADATA_COL}']/@content)" - <<< "$BOOK_OPF")
-
-    if [[ -z "$OPF_CUSTOM_METADATA" ]]; then
-        continue
-    fi
-
-    # 7. GET CUSTOM COLUMN VALUES
-
-    CUSTOM_METADATA_VALUES=$(jq --compact-output --raw-output '."#value#" | .[]' <<< "$OPF_CUSTOM_METADATA")
-
-    if [[ -z "$CUSTOM_METADATA_VALUES" ]]; then
-        continue
-    fi
-
-    # 8. EXPORT BOOK FOR EVERY COLUMN
+    # 4b. EXPORT BOOKB FOR EACH COL VALUE
     while IFS= read -d $'\n' -r CUSTOM_METADATA_VALUE ; do
-
-        if [[ -z "$CUSTOM_METADATA_VALUE" ]]; then
-            continue
-        fi
-
-        printf 'Exporting [%s] -> %s\n' "$BOOK_ID" "$CUSTOM_METADATA_VALUE"
+        printf 'Exporting %s [%s] -> %s\n' "'$BOOK_TITLE'" "$BOOK_ID" "$CUSTOM_METADATA_VALUE"
 
         calibredb \
             --with-library="$LIBRARY" \
@@ -119,6 +101,6 @@ while IFS= read -d $'\n' -r BOOK_ID ; do
             --to-dir "$OUTPUT/$CUSTOM_METADATA_VALUE" \
             "$BOOK_ID"
 
-    done < <(printf '%s\n' "$CUSTOM_METADATA_VALUES")
+    done < <(jq --compact-output --raw-output '.["*boox"] | .[]' <<< "$BOOK")
 
-done < <(printf '%s\n' "$BOOK_IDS")
+done <<< "$BOOKS"
