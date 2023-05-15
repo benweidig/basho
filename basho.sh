@@ -13,12 +13,12 @@
 #   -o <output>     Optional: output location [default=$PWD]
 #
 # Requirements:
-#   calibredb, jq, xmllint, bash4+
+#   calibredb, jq, bash4+
 ################################################################################
 
 # 0. SCRIPT META STUFF
 
-VERSION="0.0.2"
+VERSION="0.0.3"
 
 if [[ -n "$DEBUG" ]]; then
     set -x
@@ -26,7 +26,7 @@ fi
 
 # 1. VALIDATE ALL REQUIRED PROGRAMS ARE AVAILABLE
 
-REQUIREMENTS=(calibredb xmllint jq)
+REQUIREMENTS=(calibredb jq)
 for PROGRAM in "${REQUIREMENTS[@]}"; do
     command -v "$PROGRAM" > /dev/null 2>&1
     # shellcheck disable=SC2181
