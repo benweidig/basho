@@ -101,6 +101,6 @@ while IFS= read -d $'\n' -r BOOK ; do
             --to-dir "$OUTPUT/$CUSTOM_METADATA_VALUE" \
             "$BOOK_ID"
 
-    done < <(jq --compact-output --raw-output '.["*boox"] | .[]' <<< "$BOOK")
+    done < <(jq --compact-output --raw-output ".[\"*${CUSTOM_METADATA_COL}\"] | .[]" <<< "$BOOK")
 
 done <<< "$BOOKS"
